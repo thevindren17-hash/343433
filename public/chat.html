@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mister Mobile — Repair Assistant</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f0f;
+      color: #e5e5e5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background: #1a1a1a;
+      border-bottom: 1px solid #2a2a2a;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: #ff6b00;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    header h1 { font-size: 16px; font-weight: 600; color: #fff; }
+    header p  { font-size: 12px; color: #888; margin-top: 1px; }
+
+    .nav-btn {
+      margin-left: auto;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      color: #aaa;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { border-color: #ff6b00; color: #ff6b00; }
+
+    .tier-select {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      color: #e5e5e5;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .chat-wrap {
+      flex: 1;
+      width: 100%;
+      max-width: 780px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .msg {
+      display: flex;
+      gap: 10px;
+      max-width: 92%;
+    }
+
+    .msg.user  { align-self: flex-end; flex-direction: row-reverse; }
+    .msg.bot   { align-self: flex-start; }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .msg.user .avatar { background: #ff6b00; color: #fff; }
+    .msg.bot  .avatar { background: #2a2a2a; color: #aaa; }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .msg.user .bubble {
+      background: #ff6b00;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot .bubble {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-bottom-left-radius: 4px;
+      color: #e5e5e5;
+    }
+
+    .sources {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #777;
+    }
+
+    .sources strong { color: #555; display: block; margin-bottom: 4px; }
+    .sources span   { display: block; margin-top: 2px; }
+
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      background: #555;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+      40%            { transform: scale(1);   opacity: 1;   }
+    }
+
+    .input-bar {
+      padding: 16px;
+      background: #0f0f0f;
+      border-top: 1px solid #1e1e1e;
+      display: flex;
+      gap: 10px;
+    }
+
+    #brand-input {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #e5e5e5;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    #query-input {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #e5e5e5;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #query-input:focus { border-color: #ff6b00; }
+
+    #send-btn {
+      background: #ff6b00;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    #send-btn:hover   { background: #e05e00; }
+    #send-btn:disabled { background: #3a2a1a; color: #666; cursor: not-allowed; }
+
+    .welcome {
+      text-align: center;
+      padding: 48px 16px;
+      color: #555;
+    }
+    .welcome h2 { font-size: 20px; color: #777; margin-bottom: 8px; }
+    .welcome p  { font-size: 13px; line-height: 1.6; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .chip {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #aaa;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .chip:hover { border-color: #ff6b00; color: #ff6b00; }
+
+    .error { color: #f87171; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">MM</div>
+  <div>
+    <h1>Mister Mobile</h1>
+    <p>Repair Price Assistant</p>
+  </div>
+  <a href="/" class="nav-btn">Trade-In Quoter</a>
+  <select class="tier-select" id="tier-select">
+    <option value="standard">Standard</option>
+    <option value="express">Express</option>
+    <option value="premium">Premium</option>
+  </select>
+</header>
+
+<div class="chat-wrap">
+  <div id="messages">
+    <div class="welcome">
+      <h2>How can I help you today?</h2>
+      <p>Ask me about repair prices, turnaround times,<br>or any device service at Mister Mobile.</p>
+      <div class="chips">
+        <span class="chip" onclick="prefill('iPhone 15 Pro Max screen replacement cost?')">iPhone 15 Pro Max screen</span>
+        <span class="chip" onclick="prefill('Samsung Galaxy S24 battery replacement?')">Samsung S24 battery</span>
+        <span class="chip" onclick="prefill('How long does a screen repair take?')">Repair turnaround time</span>
+        <span class="chip" onclick="prefill('What is the express tier?')">Express tier</span>
+        <span class="chip" onclick="prefill('Pixel 8 Pro back glass repair price?')">Pixel 8 Pro back glass</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <input id="brand-input" type="text" placeholder="Brand (optional)" />
+    <input id="query-input" type="text" placeholder="Ask about a repair, price or service…" autocomplete="off" />
+    <button id="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  const API = "http://localhost:8000/api/quote";
+
+  const messagesEl  = document.getElementById("messages");
+  const queryInput  = document.getElementById("query-input");
+  const brandInput  = document.getElementById("brand-input");
+  const sendBtn     = document.getElementById("send-btn");
+  const tierSelect  = document.getElementById("tier-select");
+
+  queryInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  function prefill(text) {
+    queryInput.value = text;
+    queryInput.focus();
+  }
+
+  function clearWelcome() {
+    const w = messagesEl.querySelector(".welcome");
+    if (w) w.remove();
+  }
+
+  function appendMsg(role, html, sourcesList) {
+    const msg  = document.createElement("div");
+    msg.className = `msg ${role}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = role === "user" ? "You" : "MM";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = html;
+
+    if (sourcesList && sourcesList.length) {
+      const src = document.createElement("div");
+      src.className = "sources";
+      src.innerHTML = `<strong>Sources</strong>` +
+        sourcesList.map(s =>
+          `<span>· ${s.chunk_id} <em>(${Math.round(s.similarity * 100)}% match)</em></span>`
+        ).join("");
+      bubble.appendChild(src);
+    }
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return msg;
+  }
+
+  function showTyping() {
+    const msg  = document.createElement("div");
+    msg.className = "msg bot";
+    msg.id = "typing-indicator";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = "MM";
+
+    const typing = document.createElement("div");
+    typing.className = "typing";
+    typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+    msg.appendChild(avatar);
+    msg.appendChild(typing);
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById("typing-indicator");
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const query = queryInput.value.trim();
+    if (!query) return;
+
+    clearWelcome();
+    appendMsg("user", escapeHtml(query));
+    queryInput.value = "";
+    sendBtn.disabled = true;
+    showTyping();
+
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query,
+          brand_hint:   brandInput.value.trim() || null,
+          service_tier: tierSelect.value,
+        }),
+      });
+
+      removeTyping();
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          appendMsg("bot", "I don't have enough information to answer that. Try asking something like:<br><br>· <em>\"What is the iPhone 15 Pro Max screen replacement cost?\"</em><br>· <em>\"What Samsung phones do you repair?\"</em><br>· <em>\"How long does a battery replacement take?\"</em>");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          appendMsg("bot", `<span class="error">Error ${res.status}: ${err.detail || "Something went wrong."}</span>`);
+        }
+        return;
+      }
+
+      const data = await res.json();
+      appendMsg("bot", escapeHtml(data.answer), data.sources);
+
+    } catch (err) {
+      removeTyping();
+      appendMsg("bot", `<span class="error">Could not reach the API. Make sure the server is running on <code>localhost:8000</code>.</span>`);
+    } finally {
+      sendBtn.disabled = false;
+      queryInput.focus();
+    }
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+  }
+</script>
+</body>
+</html>
